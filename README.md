@@ -9,16 +9,30 @@ HostHoover is a Python 3 utility that collects running configuration files from 
 - Saves each configuration to a file named after the device hostname.
 - Creates a ZIP archive containing all collected configuration files.
 - Works on Linux and Windows thanks to a cross-platform ping check.
+- Concurrent processing for faster execution on large subnets.
+- Configurable retry logic for robust connections.
+- Progress bar for long-running operations.
+- Dry run mode for testing without actual connections.
+- Comprehensive logging for debugging.
 
 ## Requirements
 
 - Python 3.8 or higher
 - `netmiko` Python package
+- `tqdm` for progress bars
 
 Install the dependencies with:
 
 ```bash
 pip install -r requirements.txt
+```
+
+## Testing
+
+Run the tests with:
+
+```bash
+pytest
 ```
 
 ## Usage
@@ -36,6 +50,8 @@ Common options:
 - `-c`, `--command`      CLI command to run (default: `show running-config`)
 - `--ping-count`         Number of ping attempts before giving up (default: `1`)
 - `--ping-timeout`       Ping timeout in seconds (default: `1`)
+- `--max-retries`        Maximum number of connection retries (default: `1`)
+- `--dry-run`            Simulate operations without actually connecting
 
 Example:
 

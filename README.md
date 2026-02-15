@@ -1,88 +1,182 @@
-# HostHoover
+# SwitchStash
 
-HostHoover is a Python 3 utility that collects running configuration files from network devices and archives them.
+Network device configuration backup tool. Stash away configs from your switches, routers, and firewalls with ease.
 
 ## Features
 
-- Pings each host in the provided subnet and skips unreachable devices.
-- Connects over SSH using [Netmiko](https://github.com/ktbyers/netmiko).
-- Saves each configuration to a file named after the device hostname.
-- Creates a ZIP archive containing all collected configuration files.
-- Works on Linux and Windows thanks to a cross-platform ping check.
-- Concurrent processing for faster execution on large subnets.
-- Configurable retry logic for robust connections.
-- Progress bar for long-running operations.
-- Dry run mode for testing without actual connections.
-- Comprehensive logging for debugging.
+- **SSH Connectivity** - Uses Netmiko to connect to network devices
+- **Multiple Auth Methods** - Password, SSH keys, SSH agent, or interactive prompt
+- **Auto-Detection** - Automatically detect device type from SSH banner
+- **Concurrent Processing** - Parallel backups with configurable workers
+- **Config Diffing** - Track changes between backup runs
+- **Inventory Database** - SQLite-backed device tracking
+- **Interactive Mode** - Discover hosts and select which to backup
+- **Pre/Post Hooks** - Run scripts before and after backups
+- **HTML Reports** - Generate pretty reports
+- **Templated Commands** - Use variables like `{{hostname}}`
+- **Device Groups** - Different credentials per group
+- **Config Validation** - Validate config before running
+- **Reliability** - Exponential backoff, timeouts, retries
 
-## Requirements
-
-- Python 3.8 or higher
-- `netmiko` Python package
-- `tqdm` for progress bars
-
-Install the dependencies with:
+## Quick Start
 
 ```bash
-pip install -r requirements.txt
+# Install with uv
+uv sync
+
+# Run a backup
+python switchstash.py main 192.168.1.0/24 -u admin -p password
 ```
 
-## Testing
+## Installation
 
-Run the tests with:
+### Requirements
+
+- Python 3.8+
+- uv (recommended) or pip
+
+### Install
 
 ```bash
-pytest
+# Clone and install
+uv sync
+
+# Or install globally
+uv pip install -e .
 ```
 
 ## Usage
 
-```bash
-python3 hosthoover.py <network_cidr> -u <username> -p <password> [options]
-```
-You can also set credentials via the `SSH_USERNAME` and `SSH_PASSWORD` environment variables instead of using `-u` and `-p`.
-
-Common options:
-
-- `-d`, `--device-type`  Netmiko device type (default: `cisco_ios`)
-- `-o`, `--output`       Directory to save configs (default: `configs`)
-- `-z`, `--zip-name`     Name of the zip file (default: `configs.zip`)
-- `-c`, `--command`      CLI command to run (default: `show running-config`)
-- `--ping-count`         Number of ping attempts before giving up (default: `1`)
-- `--ping-timeout`       Ping timeout in seconds (default: `1`)
-- `--max-retries`        Maximum number of connection retries (default: `1`)
-- `--dry-run`            Simulate operations without actually connecting
-
-Example:
+### Basic Backup
 
 ```bash
-python3 hosthoover.py 192.168.1.0/24 -u admin -p password
+# Single network
+python switchstash.py main 192.168.1.0/24 -u admin -p password
+
+# Multiple networks
+python switchstash.py main "192.168.1.0/24,10.0.0.0/24" -u admin -p password
+
+# From file
+python switchstash.py main @networks.txt -u admin -p password
 ```
 
-The script processes the hosts in the `/24` network and stores the results in the specified output directory.
-At the end, a brief summary lists which hosts succeeded or failed.
-
-## Supported Device Types
-
-HostHoover relies on [Netmiko](https://github.com/ktbyers/netmiko), which
-supports a large number of network device platforms. To see the complete list of
-supported device types on your system, run the following Python snippet:
+### Device Groups
 
 ```bash
-python - <<'EOF'
-from netmiko.ssh_dispatcher import CLASS_MAPPER
-for device_type in sorted(CLASS_MAPPER):
-    print(device_type)
-EOF
+# Using groups from config
+python switchstash.py main --config config.yaml --group prod-cisco
+
+# List available groups
+python switchstash.py list-groups config.yaml
 ```
- 
-Common device type names for the `--device-type` option include:
 
-- `aruba_os` - ArubaOS switches and controllers
-- `cisco_ios` - Cisco IOS / IOS XE devices
-- `cisco_nxos` - Cisco NX-OS (Nexus) devices
-- `cisco_xr` - Cisco IOS-XR routers
-- `juniper_junos` - Juniper Junos platforms
+### Authentication
 
-Refer to the Netmiko documentation for details on each device type and any
-special configuration that may be required.
+```bash
+# Password
+python switchstash.py main 192.168.1.0/24 -u admin -p password
+
+# SSH key
+python switchstash.py main 192.168.1.0/24 -u admin -k ~/.ssh/id_rsa
+
+# SSH agent
+python switchstash.py main 192.168.1.0/24 -u admin --use-agent
+
+# Interactive password prompt
+python switchstash.py main 192.168.1.0/24 -u admin --password-prompt
+```
+
+### Configuration File
+
+```bash
+# Create config.yaml from the example
+cp config.example.yaml config.yaml
+# Edit with your settings
+
+# Run with config
+python switchstash.py main 192.168.1.0/24 -c config.yaml
+```
+
+### Validate Config
+
+```bash
+python switchstash.py validate config.yaml
+```
+
+## Commands
+
+| Command | Description |
+|---------|-------------|
+| `main` | Run backup |
+| `validate` | Validate config file |
+| `list-groups` | List device groups |
+| `stats` | Show inventory stats |
+| `history` | Show backup history |
+| `diff` | Show config diff |
+
+## Common Options
+
+| Option | Alias | Description |
+|--------|-------|-------------|
+| `--config` | `-c` | YAML config file |
+| `--username` | `-u` | SSH username |
+| `--password` | `-p` | SSH password |
+| `--key-file` | `-k` | SSH private key |
+| `--use-agent` | | Use SSH agent |
+| `--password-prompt` | | Prompt for password |
+| `--group` | `-g` | Device group from config |
+| `--device-type` | `-d` | Netmiko device type |
+| `--output` | `-o` | Output directory |
+| `--database` | `-b` | SQLite database |
+| `--workers` | `-w` | Concurrent workers |
+| `--html-report` | | HTML report file |
+| `--dry-run` | | Test without connecting |
+| `--version` | | Show version |
+| `--verbose` | `-v` | Verbose output |
+
+## Examples
+
+### Full Example
+
+```bash
+python switchstash.py main 192.168.1.0/24 \
+  -u admin \
+  -p password \
+  -d cisco_ios \
+  -o configs \
+  -b switchstash.db \
+  -w 20 \
+  --html-report report.html
+```
+
+### Interactive Mode
+
+```bash
+python switchstash.py main 192.168.1.0/24 -u admin -p password --interactive
+```
+
+### With Hooks
+
+```bash
+python switchstash.py main 192.168.1.0/24 \
+  -u admin -p password \
+  --pre-hook "./hooks/pre.sh" \
+  --post-hook "./hooks/post.sh"
+```
+
+## Configuration
+
+See [config.example.yaml](./config.example.yaml) for all options.
+
+## Development
+
+```bash
+# Install dependencies
+uv sync
+
+# Run tests
+uv run pytest
+
+# Run with specific test
+uv run pytest test_switchstash.py -v
+```

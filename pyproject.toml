@@ -1,0 +1,19 @@
+[project]
+name = "switchstash"
+version = "0.3.0"
+description = "Backup running-config from network devices over SSH"
+requires-python = ">=3.8"
+dependencies = [
+    "netmiko",
+    "typer",
+    "rich",
+    "pyyaml",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+]
+
+[project.scripts]
+switchstash = "switchstash:main"

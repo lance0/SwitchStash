@@ -1,0 +1,68 @@
+# Example SwitchStash configuration
+# Copy to config.yaml and customize
+
+# === CREDENTIALS (global default) ===
+username: admin
+password: changeme
+# key_file: ~/.ssh/id_rsa
+# use_agent: true
+
+# === CONNECTION (global default) ===
+device_type: cisco_ios
+auto_detect: false
+
+# === COMMANDS (global default) ===
+commands:
+  - show running-config
+
+# === DEVICE GROUPS ===
+# Define groups with their own settings and target networks
+# groups:
+#   # Production Cisco switches
+#   prod-cisco:
+#     networks:
+#       - 10.1.0.0/16
+#     username: admin
+#     password: prodpassword
+#     device_type: cisco_ios
+#     commands:
+#       - show running-config
+#       - show version
+#
+#   # Juniper devices
+#   juniper:
+#     networks:
+#       - 10.2.0.0/24
+#     username: admin
+#     password: juniperpass
+#     device_type: juniper_junos
+#     commands:
+#       - show configuration | display set
+#
+#   # Use SSH key for lab devices
+#   lab:
+#     networks:
+#       - 172.16.0.0/24
+#     username: admin
+#     key_file: ~/.ssh/lab_key
+#     device_type: cisco_ios
+
+# === OUTPUT ===
+output_dir: configs
+zip_name: configs.zip
+database: switchstash.db
+
+# === TIMEOUTS (seconds) ===
+# connect_timeout: 10
+# command_timeout: 30
+# max_retries: 3
+
+# === HOOKS ===
+# Environment variables: SWITCHSTASH_HOST, SWITCHSTASH_HOSTNAME, SWITCHSTASH_ACTION
+# pre_hook: ./hooks/pre.sh
+# post_hook: ./hooks/post.sh
+
+# === OTHER ===
+# no_diff: false
+# ping_count: 1
+# ping_timeout: 1
